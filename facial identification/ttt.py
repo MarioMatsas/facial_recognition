@@ -10,6 +10,9 @@ class CameraApp:
         self.root = root
         self.root.title("Camera Feed")
 
+        # Reload Model
+        self.l_model = tf.keras.models.load_model("siamesemodelx.h5")
+
         # Create a canvas to display the camera feed
         self.canvas = tk.Canvas(root, width=250, height=300)
         self.canvas.pack(padx = 25)
@@ -26,10 +29,14 @@ class CameraApp:
         self.update()
 
     def func(self):
-        self.label.config(text="testing")
-
         # Save input image to application_data/input_image folder
         cv2.imwrite(os.path.join("application_data", "input_image", "input_image.jpg"), self.frame)
+
+        # Run verification l_model
+        results, verified = self.verify(self.l_model, 0.5, 0.5)
+        
+        res = str(verified)
+        self.label.config(text=res)
 
     def update(self):
         # Read a frame from the camera
@@ -65,10 +72,10 @@ class CameraApp:
         img = img / 255.0 # Scale every pixel value to 0-1 => scale the image
         return img
 
-    def verify(self, model, detection_threshold, verification_threshold, app_ver_path):
+    def verify(self, model, detection_threshold, verification_threshold):
         # Build results array
         results = []
-        for image in os.listdir(os.path.join(app_ver_path)):
+        for image in os.listdir(os.path.join("application_data", "verification_images")):
             input_img = self.preprocess(os.path.join("application_data", "input_image", "input_image.jpg"))
             validation_img = self.preprocess(os.path.join("application_data", "verification_images", image))
 
